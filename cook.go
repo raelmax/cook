@@ -8,12 +8,9 @@ import (
 	"strings"
 )
 
-const gitHub = "git@github.com:"
-
-// Clone fetch a git repository to current directory and returns
-// a directory name
+// Clone fetch a git repository to current directory and returns a directory name
 func Clone(repoName string) string {
-	repoURL := gitHub + repoName + ".git"
+	repoURL := "git@github.com:" + repoName + ".git"
 
 	cloneCmd := exec.Command("git", "clone", repoURL)
 	cloneOut, err := cloneCmd.Output()
