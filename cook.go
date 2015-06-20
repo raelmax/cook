@@ -2,7 +2,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,20 +15,26 @@ func Clone(repoName string) string {
 	repoURL := "git@github.com:" + repoName + ".git"
 
 	cloneCmd := exec.Command("git", "clone", repoURL)
-	cloneOut, err := cloneCmd.Output()
+	_, err := cloneCmd.Output()
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(string(cloneOut))
-
 	return strings.Split(repoName, "/")[1]
 }
 
 // Parse a json config file to ask user to new values
-func Parse(repoPath string) string {
-	return "YAY"
+func Parse(repoPath string) map[string]interface{} {
+	configName := "cookiecutter.json"
+	config, err := ioutil.ReadFile(repoPath + "/" + configName)
+	if err != nil {
+		panic(err)
+	}
+
+	var configJson map[string]interface{}
+	json.Unmarshal([]byte(config), &configJson)
+	return configJson
 }
 
 func main() {
@@ -40,5 +48,6 @@ func main() {
 	}
 
 	repoPath = Clone(repoName)
-	fmt.Println(repoPath)
+	config := Parse(repoPath)
+	fmt.Print(config["full_name"])
 }
