@@ -8,16 +8,14 @@ import (
 	"strings"
 )
 
-const (
-	GITHUB_URL = "git@github.com:"
-)
+const gitHub = "git@github.com:"
 
 // Clone fetch a git repository to current directory and returns
 // a directory name
 func Clone(repoName string) string {
-	repoUrl := GITHUB_URL + repoName + ".git"
+	repoURL := gitHub + repoName + ".git"
 
-	cloneCmd := exec.Command("git", "clone", repoUrl)
+	cloneCmd := exec.Command("git", "clone", repoURL)
 	cloneOut, err := cloneCmd.Output()
 
 	if err != nil {
@@ -27,6 +25,11 @@ func Clone(repoName string) string {
 	fmt.Println(string(cloneOut))
 
 	return strings.Split(repoName, "/")[1]
+}
+
+// Parse a json config file to ask user to new values
+func Parse(repoPath string) string {
+	return "YAY"
 }
 
 func main() {
