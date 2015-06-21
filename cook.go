@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -37,6 +38,21 @@ func Parse(repoPath string) map[string]interface{} {
 	return configJson
 }
 
+// Ask receive a config map, iterate over and update user project data
+func Ask(config map[string]interface{}) map[string]interface{} {
+	for k, v := range config {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Enter ", k, " (default: ", v, "): ")
+		text, _ := reader.ReadString('\n')
+
+		if len(strings.TrimSpace(text)) > 0 {
+			config[k] = text
+		}
+	}
+
+	return config
+}
+
 func main() {
 	var repoName, repoPath string
 
@@ -49,5 +65,11 @@ func main() {
 
 	repoPath = Clone(repoName)
 	config := Parse(repoPath)
-	fmt.Print(config["full_name"])
+
+	// update config with user data
+	config = Ask(config)
+
+	for k, v := range config {
+		fmt.Printf("%s -> %s", k, v)
+	}
 }
