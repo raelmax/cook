@@ -27,14 +27,23 @@ func Clone(repoName string) string {
 
 // Parse a json config file to ask user to new values
 func Parse(repoPath string) map[string]interface{} {
-	configName := "cookiecutter.json"
-	config, err := ioutil.ReadFile(repoPath + "/" + configName)
-	if err != nil {
-		panic(err)
+	var configJson map[string]interface{}
+	configNames := [2]string{"cook.json", "cookiecutter.json"}
+
+	for index := range configNames {
+		config, err := ioutil.ReadFile(repoPath + "/" + configNames[index])
+
+		if err != nil {
+			continue
+		}
+
+		json.Unmarshal([]byte(config), &configJson)
 	}
 
-	var configJson map[string]interface{}
-	json.Unmarshal([]byte(config), &configJson)
+	if len(configJson) == 0 {
+		panic("This is not a valid repository.")
+	}
+
 	return configJson
 }
 
