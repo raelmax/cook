@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -62,6 +64,29 @@ func Ask(config map[string]interface{}) map[string]interface{} {
 	return config
 }
 
+// getPaths receive a repository path and returns a slice with template files/dirs path
+func getPaths(repoPath string) []string {
+	var paths = make([]string, 0)
+
+	filepath.Walk(repoPath, func(fp string, fi os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println(err) // can't walk here,
+			return nil       // but continue walking elsewhere
+		}
+
+		regex, _ := regexp.Compile("{{(\\s|)cook?\\w+\\.\\w+(\\s|)}}")
+		matched := regex.MatchString(fi.Name())
+
+		if matched {
+			paths = append(paths, fp)
+		}
+
+		return nil
+	})
+
+	return paths
+}
+
 func main() {
 	var repoName, repoPath string
 
@@ -74,11 +99,8 @@ func main() {
 
 	repoPath = Clone(repoName)
 	config := Parse(repoPath)
-
-	// update config with user data
 	config = Ask(config)
 
-	for k, v := range config {
-		fmt.Printf("%s -> %s", k, v)
-	}
+	paths := getPaths(repoPath)
+	fmt.Println(paths)
 }
