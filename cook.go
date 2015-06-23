@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+var regex, _ = regexp.Compile("{{(\\s|)cook?\\w+\\.\\w+(\\s|)}}")
+
 // Clone fetch a git repository to current directory and returns a directory name
 func Clone(repoName string) string {
 	repoURL := "git@github.com:" + repoName + ".git"
@@ -74,7 +76,6 @@ func getPaths(repoPath string) []string {
 			return nil       // but continue walking elsewhere
 		}
 
-		regex, _ := regexp.Compile("{{(\\s|)cook?\\w+\\.\\w+(\\s|)}}")
 		matched := regex.MatchString(fi.Name())
 
 		if matched {
@@ -102,5 +103,21 @@ func main() {
 	config = Ask(config)
 
 	paths := getPaths(repoPath)
-	fmt.Println(paths)
+
+	// reverse paths list to rename files/dirs without lost references
+	for i := len(paths)-1; i >= 0; i-- {
+		parts := strings.Split(paths[i], string(os.PathSeparator))
+		replaceStr := parts[len(parts) - 1]
+		str := strings.Split(replaceStr, ".")[1]
+		key := strings.Replace(str, "}}", "", -1)
+		key = strings.TrimSpace(key)
+		replaceStr = regex.ReplaceAllString(replaceStr, config[key])
+		parts[len(parts) - 1] = replaceStr
+
+		newPath := strings.Join(parts, string(os.PathSeparator))
+
+		os.Rename(paths[i], newPath)
+
+		fmt.Println(config[key])
+	}
 }
