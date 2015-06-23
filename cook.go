@@ -67,6 +67,16 @@ func Ask(config map[string]interface{}) map[string]interface{} {
 	return config
 }
 
+// getKey receive a string with a placeholder, parse and return a key string
+func getKey(placeholder string) string {
+	placeholder = regex.FindString(placeholder)
+	strParts := strings.Split(placeholder, ".")[1]
+
+	key := strings.Replace(strParts, "}}", "", -1)
+	key = strings.TrimSpace(key)
+	return key
+}
+
 // getPaths receive a repository path and returns a slice with template files/dirs path
 func getPaths(repoPath string) []string {
 	var paths = make([]string, 0)
@@ -99,11 +109,8 @@ func ReplacePaths(paths []string, config map[string]interface{}) string {
 		parts := strings.Split(paths[i], string(os.PathSeparator))
 		replacePart := parts[len(parts)-1]
 		originalPart := parts[len(parts)-1]
-		strParts := strings.Split(replacePart, ".")[1]
-		replacePart = regex.FindString(replacePart)
 
-		key := strings.Replace(strParts, "}}", "", -1)
-		key = strings.TrimSpace(key)
+		key := getKey(replacePart)
 		value := config[key].(string)
 
 		originalPart = regex.ReplaceAllString(originalPart, value)
@@ -124,6 +131,42 @@ func ReplacePaths(paths []string, config map[string]interface{}) string {
 	return newFolder
 }
 
+//ReplaceContent receives a config map to replace all files with your variables
+func ReplaceContent(repoPath string, config map[string]interface{}) {
+	filepath.Walk(repoPath, func(fp string, fi os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println(err) // can't walk here,
+			return nil       // but continue walking elsewhere
+		}
+
+		if !!fi.IsDir() {
+			return nil // not a file.  ignore.
+		}
+
+		file, err := ioutil.ReadFile(fp)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		lines := strings.Split(string(file), "\n")
+		for i, line := range lines {
+			placeholders := regex.FindAllString(line, -1)
+			for _, ph := range placeholders {
+				key := getKey(ph)
+				value := config[key].(string)
+				fmt.Println(key, value)
+				lines[i] = strings.Replace(lines[i], ph, value, 1)
+			}
+		}
+		output := strings.Join(lines, "\n")
+		err = ioutil.WriteFile(fp, []byte(output), 0644)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		return nil
+	})
+}
 
 func main() {
 	var repoName, repoPath string
@@ -141,4 +184,6 @@ func main() {
 
 	paths := getPaths(repoPath)
 	repoPath = ReplacePaths(paths, config)
+	ReplaceContent(repoPath, config)
+	fmt.Println("Project genereated: ", repoPath)
 }
