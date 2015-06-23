@@ -154,7 +154,6 @@ func ReplaceContent(repoPath string, config map[string]interface{}) {
 			for _, ph := range placeholders {
 				key := getKey(ph)
 				value := config[key].(string)
-				fmt.Println(key, value)
 				lines[i] = strings.Replace(lines[i], ph, value, 1)
 			}
 		}
