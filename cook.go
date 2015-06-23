@@ -31,7 +31,7 @@ func Clone(repoName string) string {
 
 // Parse a json config file to ask user to new values
 func Parse(repoPath string) map[string]interface{} {
-	var configJson map[string]interface{}
+	var configJSON map[string]interface{}
 	configNames := [2]string{"cook.json", "cookiecutter.json"}
 
 	for index := range configNames {
@@ -41,14 +41,14 @@ func Parse(repoPath string) map[string]interface{} {
 			continue
 		}
 
-		json.Unmarshal([]byte(config), &configJson)
+		json.Unmarshal([]byte(config), &configJSON)
 	}
 
-	if len(configJson) == 0 {
+	if len(configJSON) == 0 {
 		panic("This is not a valid repository.")
 	}
 
-	return configJson
+	return configJSON
 }
 
 // Ask receive a config map, iterate over and update user project data
