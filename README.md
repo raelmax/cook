@@ -16,5 +16,5 @@ Cook use the same syntax of cookiecutter to your projects templates, so, you can
 use any templates from [cookiecutter list](https://github.com/audreyr/cookiecutter#available-cookiecutters).
 
 ## Create your own template
-You can(and should!) create your owns templates, and to help you with this task
+You can(and should!) create your own templates, and to help you with this task
 we offer a example [at this repository](https://github.com/raelmax/cook-basic-template).
