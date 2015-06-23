@@ -89,6 +89,30 @@ func getPaths(repoPath string) []string {
 	return paths
 }
 
+// ReplacePaths receives a slices of paths and a config map to replace
+// variables with config values
+func ReplacePaths(paths []string, config map[string]interface{}) {
+	// reverse paths list to rename files/dirs without lost references
+	for i := len(paths) - 1; i >= 0; i-- {
+		parts := strings.Split(paths[i], string(os.PathSeparator))
+		replacePart := parts[len(parts)-1]
+		originalPart := parts[len(parts)-1]
+		strParts := strings.Split(replacePart, ".")[1]
+		replacePart = regex.FindString(replacePart)
+
+		key := strings.Replace(strParts, "}}", "", -1)
+		key = strings.TrimSpace(key)
+		value := config[key].(string)
+
+		originalPart = regex.ReplaceAllString(originalPart, value)
+		parts[len(parts)-1] = originalPart
+		newPath := strings.Join(parts, string(os.PathSeparator))
+
+		os.Rename(paths[i], newPath)
+	}
+}
+
+
 func main() {
 	var repoName, repoPath string
 
@@ -105,23 +129,5 @@ func main() {
 
 	paths := getPaths(repoPath)
 
-	// reverse paths list to rename files/dirs without lost references
-	for i := len(paths)-1; i >= 0; i-- {
-		parts := strings.Split(paths[i], string(os.PathSeparator))
-		replacePart := parts[len(parts) - 1]
-		originalPart := parts[len(parts) - 1]
-		strParts := strings.Split(replacePart, ".")[1]
-		replacePart = regex.FindString(replacePart)
-
-
-		key := strings.Replace(strParts, "}}", "", -1)
-		key = strings.TrimSpace(key)
-		value := config[key].(string)
-
-		originalPart = regex.ReplaceAllString(originalPart, value)
-		parts[len(parts) - 1] = originalPart
-		newPath := strings.Join(parts, string(os.PathSeparator))
-
-		os.Rename(paths[i], newPath)
-	}
+	ReplacePaths(paths, config)
 }
