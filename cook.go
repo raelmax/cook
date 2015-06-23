@@ -91,7 +91,9 @@ func getPaths(repoPath string) []string {
 
 // ReplacePaths receives a slices of paths and a config map to replace
 // variables with config values
-func ReplacePaths(paths []string, config map[string]interface{}) {
+func ReplacePaths(paths []string, config map[string]interface{}) string {
+	var newFolder string
+
 	// reverse paths list to rename files/dirs without lost references
 	for i := len(paths) - 1; i >= 0; i-- {
 		parts := strings.Split(paths[i], string(os.PathSeparator))
@@ -109,7 +111,17 @@ func ReplacePaths(paths []string, config map[string]interface{}) {
 		newPath := strings.Join(parts, string(os.PathSeparator))
 
 		os.Rename(paths[i], newPath)
+
+		if i == 0 {
+			folderParts := strings.Split(newPath, string(os.PathSeparator))
+			oldFolder := folderParts[0]
+			newFolder = folderParts[1]
+
+			os.Rename(newPath, newFolder)
+			os.RemoveAll(oldFolder)
+		}
 	}
+	return newFolder
 }
 
 
@@ -128,6 +140,5 @@ func main() {
 	config = Ask(config)
 
 	paths := getPaths(repoPath)
-
-	ReplacePaths(paths, config)
+	repoPath = ReplacePaths(paths, config)
 }
