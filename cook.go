@@ -35,7 +35,7 @@ func Parse(repoPath string) map[string]interface{} {
 	configNames := [2]string{"cook.json", "cookiecutter.json"}
 
 	for index := range configNames {
-		config, err := ioutil.ReadFile(repoPath + "/" + configNames[index])
+		config, err := ioutil.ReadFile(repoPath + string(os.PathSeparator) + configNames[index])
 
 		if err != nil {
 			continue
@@ -59,6 +59,7 @@ func Ask(config map[string]interface{}) map[string]interface{} {
 		text, _ := reader.ReadString('\n')
 
 		if len(strings.TrimSpace(text)) > 0 {
+			text = strings.TrimSuffix(text, "\n")
 			config[k] = text
 		}
 	}
@@ -107,17 +108,20 @@ func main() {
 	// reverse paths list to rename files/dirs without lost references
 	for i := len(paths)-1; i >= 0; i-- {
 		parts := strings.Split(paths[i], string(os.PathSeparator))
-		replaceStr := parts[len(parts) - 1]
-		str := strings.Split(replaceStr, ".")[1]
-		key := strings.Replace(str, "}}", "", -1)
-		key = strings.TrimSpace(key)
-		replaceStr = regex.ReplaceAllString(replaceStr, config[key])
-		parts[len(parts) - 1] = replaceStr
+		replacePart := parts[len(parts) - 1]
+		originalPart := parts[len(parts) - 1]
+		strParts := strings.Split(replacePart, ".")[1]
+		replacePart = regex.FindString(replacePart)
 
+
+		key := strings.Replace(strParts, "}}", "", -1)
+		key = strings.TrimSpace(key)
+		value := config[key].(string)
+
+		originalPart = regex.ReplaceAllString(originalPart, value)
+		parts[len(parts) - 1] = originalPart
 		newPath := strings.Join(parts, string(os.PathSeparator))
 
 		os.Rename(paths[i], newPath)
-
-		fmt.Println(config[key])
 	}
 }
