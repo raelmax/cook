@@ -10,6 +10,11 @@ A simple command line application to create projects from templates.
 
 Get the binary for your platform: [linux](https://github.com/raelmax/cook/raw/master/bin/linux/cook) | [mac](https://github.com/raelmax/cook/raw/master/bin/darwin/cook)
 
+Give permission to execute:
+```
+$ chmod +x cook
+```
+
 Execute:
 ```
 $ ./cook raelmax/cook-basic-template
