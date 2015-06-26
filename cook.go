@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -15,18 +14,14 @@ import (
 
 var regex, _ = regexp.Compile("{{(\\s|)cook?\\w+\\.\\w+(\\s|)}}")
 
-// Clone fetch a git repository to current directory and returns a directory name
-func Clone(repoName string) string {
-	repoURL := "git@github.com:" + repoName + ".git"
-
-	cloneCmd := exec.Command("git", "clone", repoURL)
-	_, err := cloneCmd.Output()
-
-	if err != nil {
-		panic(err)
-	}
-
-	return strings.Split(repoName, "/")[1]
+// Get fetch a git repository to current directory and returns a directory name
+func Get(repoName string) string {
+	repoURL := "https://github.com/" + repoName + "/archive/master.zip"
+	dirName := strings.Split(repoName, "/")[1]
+	downloadFromUrl(repoURL)
+	unzip("master.zip", "")
+	os.Rename(dirName+"-master", dirName)
+	return dirName
 }
 
 // Parse a json config file to ask user to new values
@@ -177,7 +172,7 @@ func main() {
 		return
 	}
 
-	repoPath = Clone(repoName)
+	repoPath = Get(repoName)
 	config := Parse(repoPath)
 	config = Ask(config)
 
